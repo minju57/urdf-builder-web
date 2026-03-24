@@ -246,10 +246,10 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
     if (inertiaData && inertiaData.length > 0) {
       const d = inertiaData[0];
       lines.push(inertialTag(L2,
-        d.mass || d.m || 1.0,
-        [d.com_x || d.x || 0, d.com_y || d.y || 0, d.com_z || d.z || 0],
-        d.ixx || 0.01, d.ixy || 0, d.ixz || 0,
-        d.iyy || 0.01, d.iyz || 0, d.izz || 0.01
+        d.mass ?? d.m ?? 1.0,
+        [d.com_x ?? d.x ?? 0, d.com_y ?? d.y ?? 0, d.com_z ?? d.z ?? 0],
+        d.ixx ?? 0.01, d.ixy ?? 0, d.ixz ?? 0,
+        d.iyy ?? 0.01, d.iyz ?? 0, d.izz ?? 0.01
       ));
     } else {
       lines.push(inertialTag(L2, 10.0));
@@ -411,10 +411,10 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
     if (inertiaData && inertiaData.length > dataIdx) {
       const d = inertiaData[dataIdx];
       lines.push(inertialTag(L2,
-        d.mass || d.m || 1.0,
-        [d.com_x || d.x || 0, d.com_y || d.y || 0, d.com_z || d.z || 0],
-        d.ixx || 0.01, d.ixy || 0, d.ixz || 0,
-        d.iyy || 0.01, d.iyz || 0, d.izz || 0.01
+        d.mass ?? d.m ?? 1.0,
+        [d.com_x ?? d.x ?? 0, d.com_y ?? d.y ?? 0, d.com_z ?? d.z ?? 0],
+        d.ixx ?? 0.01, d.ixy ?? 0, d.ixz ?? 0,
+        d.iyy ?? 0.01, d.iyz ?? 0, d.izz ?? 0.01
       ));
     } else {
       lines.push(inertialTag(L2));

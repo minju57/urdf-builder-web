@@ -455,10 +455,10 @@ body {
   color: #d4d4d4;
   padding: 10px;
   border-radius: 4px;
-  max-height: 200px;
+  max-height: 300px;
   overflow: auto;
   white-space: pre;
-  display: none;
+  margin-top: 6px;
 }
 
 /* ==================== Instructions ==================== */

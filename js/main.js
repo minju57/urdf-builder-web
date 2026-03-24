@@ -232,11 +232,12 @@ function generateAndDownloadURDF() {
   a.click();
   URL.revokeObjectURL(url);
 
-  // Show preview
+  // Show preview - open the details panel automatically
   const preview = document.getElementById('urdf_preview');
   if (preview) {
     preview.textContent = urdfStr;
-    preview.style.display = '';
+    const detailsEl = preview.closest('details');
+    if (detailsEl) detailsEl.open = true;
   }
   showToast('URDF generated and downloaded.');
 }
@@ -332,6 +333,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('btn_move_down').addEventListener('click', () => {
     AppState.moveDown(AppState.selectedIndex);
+  });
+
+  // Reset All Joints
+  document.getElementById('btn_reset_all').addEventListener('click', () => {
+    if (!confirm('Reset all joints to initial state? This cannot be undone.')) return;
+    AppState.joints = [getDefaultJoint(0)];
+    AppState.selectedIndex = -1;
+    AppState.inertiaData = null;
+    AppState.isImported = false;
+    document.getElementById('inertia_status').textContent = '';
+    AppState.emit('joints');
+    AppState.emit('selected');
+    showToast('All joints reset.');
   });
 
   // Joint dropdown
