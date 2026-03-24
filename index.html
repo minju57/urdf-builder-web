@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>&#x1F916; URDF Builder</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ==================== Header ==================== -->
+<header class="app-header">
+  <h1>&#x1F916; URDF Builder</h1>
+  <span class="subtitle">Robot Description File Generator</span>
+</header>
+
+<!-- ==================== Tab Navigation ==================== -->
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="tab_builder">&#x1F6E0;&#xFE0F; URDF Builder</button>
+  <button class="tab-btn" data-tab="tab_visualizer">&#x1F441;&#xFE0F; Visualizer</button>
+</nav>
+
+<!-- ==================== Builder Tab ==================== -->
+<div id="tab_builder" class="tab-content active">
+
+  <!-- Instructions -->
+  <div class="instructions-panel">
+    <div class="panel-header accordion-closed" id="instructions_header" onclick="toggleAccordion('instructions_body')">
+      <span>&#x1F4D6; URDF Builder Usage Guide (click to expand)</span>
+      <span class="accordion-arrow">&#9654;</span>
+    </div>
+    <div class="accordion-body" id="instructions_body" style="display:none">
+      <div class="instructions-content">
+        <h3>Basic Workflow</h3>
+        <p>1. <strong>Add Joints</strong>: Click "Add Joint" to add articulations. View parent-child relationships in the Structure Map.</p>
+        <p>2. <strong>Edit Properties</strong>: Select a joint to edit its position (Kinematics), appearance (Visual), and collision area (Collision).</p>
+        <p>3. <strong>Base Settings</strong>: Click the blue Base Joint node in the Structure Map to edit base settings (Fixed/Floating, Visual, Collision).</p>
+        <p>4. <strong>Export</strong>: Set the robot name in the Export panel, optionally upload an Inertia file, and click "Generate URDF".</p>
+        <h3>Key Settings</h3>
+        <p><strong>Axis / Type</strong>: Roll=X-axis, Pitch=Y-axis, Yaw=Z-axis, Fixed=no rotation</p>
+        <p><strong>Offset XYZ</strong>: Position offset from parent link (in mm)</p>
+        <p><strong>Limits Min/Max</strong>: Joint rotation limits in degrees</p>
+        <h3>Inertia File Format</h3>
+        <table>
+          <tr><th>link_name</th><th>mass</th><th>ixx</th><th>iyy</th><th>izz</th><th>ixy</th><th>ixz</th><th>iyz</th><th>com_x</th><th>com_y</th><th>com_z</th></tr>
+          <tr><td>base_link</td><td>5.0</td><td>0.01</td><td>0.01</td><td>0.01</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.1</td></tr>
+        </table>
+        <p>Row order: base_link &rarr; joint_0's child &rarr; joint_1's child ... Units: mass(kg), inertia(kg&middot;m&sup2;), com(m)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Section -->
+  <div class="import-section">
+    <div class="panel-header" onclick="toggleAccordion('import_body')">
+      <span>&#x1F4C2; Import Existing URDF</span>
+      <span class="accordion-arrow">&#9654;</span>
+    </div>
+    <div class="accordion-body" id="import_body" style="display:none">
+      <label class="file-upload-btn">
+        <input type="file" id="urdf_upload" accept=".urdf">
+        &#x1F4C4; Upload .urdf file (click or drag)
+      </label>
+    </div>
+  </div>
+
+  <div class="builder-layout">
+
+    <!-- ==================== LEFT PANEL ==================== -->
+    <div class="builder-left">
+
+      <!-- Structure Map (Tree) -->
+      <div class="tree-section panel">
+        <div class="tree-title">&#x1F5FA;&#xFE0F; Structure Map</div>
+        <div id="tree_container">
+          <div style="padding:20px;text-align:center;color:#aaa;font-style:italic;">Loading tree...</div>
+        </div>
+      </div>
+
+      <!-- Controls Bar -->
+      <div class="controls-bar">
+        <select id="joint_dropdown" title="Select Joint">
+          <option value="-1">-- Select Joint --</option>
+        </select>
+        <button class="btn btn-primary" id="btn_add_joint">&#xFF0B; Add Joint</button>
+        <button class="btn btn-secondary btn-sm" id="btn_move_up">&#x2B06; Up</button>
+        <button class="btn btn-secondary btn-sm" id="btn_move_down">&#x2B07; Down</button>
+      </div>
+
+      <!-- Order List -->
+      <div class="order-section panel">
+        <div class="panel-header" onclick="toggleAccordion('order_list_body')">
+          <span>&#x1F504; Joint Order List</span>
+          <span class="accordion-arrow">&#9654;</span>
+        </div>
+        <div id="order_list_body" style="display:none">
+          <div id="order_list"></div>
+        </div>
+      </div>
+
+      <!-- Editor Panel -->
+      <div class="editor-section panel">
+        <div id="editor_panel">
+          <div class="editor-placeholder">Select a joint from the tree or dropdown to edit it.</div>
+        </div>
+      </div>
+
+    </div><!-- /builder-left -->
+
+    <!-- ==================== RIGHT PANEL ==================== -->
+    <div class="builder-right">
+
+      <!-- Export Panel -->
+      <div class="export-panel panel">
+        <div class="panel-header">
+          &#x1F4E4; Export
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label>Robot Name</label>
+            <input type="text" id="robot_name_input" value="my_robot" placeholder="Robot name (no spaces)">
+          </div>
+
+          <label class="file-upload-btn">
+            <input type="file" id="inertia_upload" accept=".csv,.xlsx">
+            &#x1F4C1; Upload Inertia File (.csv / .xlsx)
+          </label>
+          <div id="inertia_status" style="font-size:11px;color:#27ae60;"></div>
+          <button class="btn btn-secondary btn-sm btn-block" id="btn_inertia_template">
+            &#x2B07; Download Inertia Template (.xlsx)
+          </button>
+
+          <button class="btn btn-primary btn-block" id="btn_generate_urdf">
+            &#x1F680; Generate &amp; Download URDF
+          </button>
+
+          <details>
+            <summary style="cursor:pointer;font-size:12px;color:#666;margin-top:4px;">Preview output</summary>
+            <pre id="urdf_preview"></pre>
+          </details>
+        </div>
+      </div>
+
+    </div><!-- /builder-right -->
+
+  </div><!-- /builder-layout -->
+</div><!-- /tab_builder -->
+
+<!-- ==================== Visualizer Tab ==================== -->
+<div id="tab_visualizer" class="tab-content">
+  <div class="visualizer-layout">
+
+    <!-- 3D Canvas -->
+    <div class="viz-canvas-panel">
+      <div id="viz_canvas"></div>
+      <div class="viz-controls">
+        <button class="btn btn-sm" id="btn_viz_fit">&#x1F50D; Auto Fit</button>
+        <div class="viz-toggle-row">
+          <label style="display:flex;align-items:center;gap:4px;">
+            <input type="checkbox" id="viz_show_visual" checked> Visual
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;">
+            <input type="checkbox" id="viz_show_collision"> Collision
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="viz-right-panel">
+
+      <!-- Upload Panel -->
+      <div class="viz-upload-panel">
+        <label>Load URDF in Viewer</label>
+        <button class="btn btn-success btn-block" id="btn_viz_load_current">
+          &#x25B6; Load Current Robot
+        </button>
+        <div style="text-align:center;font-size:11px;color:#aaa;margin:4px 0;">or upload files</div>
+        <label class="file-upload-btn">
+          <input type="file" id="viz_urdf_upload" accept=".urdf,.stl,.obj" multiple>
+          &#x1F4C4; Upload URDF + Mesh files
+        </label>
+        <div style="font-size:11px;color:#888;">Tip: Select .urdf + optional .stl/.obj files together</div>
+      </div>
+
+      <!-- Joint Sliders -->
+      <div class="slider-panel">
+        <h3>&#x1F3AE; Joint Controls</h3>
+        <div id="viz_sliders_panel">
+          <div class="empty-state">Load a robot to see joint controls.</div>
+        </div>
+      </div>
+
+    </div><!-- /viz-right-panel -->
+
+  </div><!-- /visualizer-layout -->
+</div><!-- /tab_visualizer -->
+
+<!-- ==================== External Libraries ==================== -->
+<!-- dagre for tree layout -->
+<script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+<!-- Three.js ecosystem -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+<!-- SheetJS for xlsx -->
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+<!-- Application JavaScript (order matters) -->
+<script src="js/defaults.js"></script>
+<script src="js/state.js"></script>
+<script src="js/urdf_gen.js"></script>
+<script src="js/urdf_import.js"></script>
+<script src="js/tree.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/visualizer.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
