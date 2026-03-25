@@ -59,6 +59,15 @@ function fmt4(v) {
   return parseFloat(v).toFixed(4);
 }
 
+function xmlAttr(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 // Indent helpers
 const L0 = '';
 const L1 = '  ';
@@ -108,7 +117,7 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
   const lines = [];
 
   lines.push(xmlHeader());
-  lines.push(startTag(L0, 'robot', `name="${robotName}"`));
+  lines.push(startTag(L0, 'robot', `name="${xmlAttr(robotName)}"`));
   lines.push(mujocoSetting(L1));
 
   // Build child map for auto geometry
@@ -138,7 +147,7 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
       lines.push(tag(L1, 'link', 'name="world"'));
       lines.push(startTag(L1, 'joint', 'name="world_to_base" type="fixed"'));
       lines.push(tag(L2, 'parent', 'link="world"'));
-      lines.push(tag(L2, 'child', `link="${baseLinkName}"`));
+      lines.push(tag(L2, 'child', `link="${xmlAttr(baseLinkName)}"`));
       lines.push(tag(L2, 'origin', `xyz="${bx} ${by} ${bz}" rpy="${fmt4(br)} ${fmt4(bp)} ${fmt4(byaw)}"`));
       lines.push(endTag(L1, 'joint'));
     } else {
@@ -153,12 +162,12 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
       lines.push(startTag(L1, 'joint', 'name="floating_base" type="floating"'));
       lines.push(tag(L2, 'origin', `xyz="${bx} ${by} ${bz}" rpy="${fmt4(br)} ${fmt4(bp)} ${fmt4(byaw)}"`));
       lines.push(tag(L2, 'parent', 'link="base"'));
-      lines.push(tag(L2, 'child', `link="${baseLinkName}"`));
+      lines.push(tag(L2, 'child', `link="${xmlAttr(baseLinkName)}"`));
       lines.push(endTag(L1, 'joint'));
     }
 
     // Base link
-    lines.push(startTag(L1, 'link', `name="${baseLinkName}"`));
+    lines.push(startTag(L1, 'link', `name="${xmlAttr(baseLinkName)}"`));
 
     const baseVisType = baseJoint.vis_type || 'Auto (Cylinder)';
 
@@ -278,16 +287,18 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
     const jType = j.type || 'revolute';
 
     // Write joint
-    lines.push(startTag(L1, 'joint', `name="${jName}" type="${jType}"`));
-    lines.push(tag(L2, 'parent', `link="${pLink}"`));
-    lines.push(tag(L2, 'child', `link="${cLink}"`));
+    lines.push(startTag(L1, 'joint', `name="${xmlAttr(jName)}" type="${jType}"`));
+    lines.push(tag(L2, 'parent', `link="${xmlAttr(pLink)}"`));
+    lines.push(tag(L2, 'child', `link="${xmlAttr(cLink)}"`));
     lines.push(tag(L2, 'origin', `xyz="${jx} ${jy} ${jz}" rpy="${fmt4(jr)} ${fmt4(jp)} ${fmt4(jyaw)}"`));
-    lines.push(tag(L2, 'axis', `xyz="${axis}"`));
-    lines.push(tag(L2, 'limit', `lower="${fmt4(low)}" upper="${fmt4(up)}" effort="10" velocity="1"`));
+    if (jType !== 'fixed') {
+      lines.push(tag(L2, 'axis', `xyz="${axis}"`));
+      lines.push(tag(L2, 'limit', `lower="${fmt4(low)}" upper="${fmt4(up)}" effort="10" velocity="1"`));
+    }
     lines.push(endTag(L1, 'joint'));
 
     // Write child link
-    lines.push(startTag(L1, 'link', `name="${cLink}"`));
+    lines.push(startTag(L1, 'link', `name="${xmlAttr(cLink)}"`));
 
     const visMode = j.vis_type || 'Auto (Cylinder)';
 

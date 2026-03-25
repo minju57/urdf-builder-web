@@ -27,7 +27,41 @@ function renderTree() {
   const container = document.getElementById('tree_container');
   if (!container) return;
   const svg = drawTree(AppState.joints, AppState.selectedIndex, AppState.baseState);
-  container.innerHTML = `<div style="overflow-x: auto; padding: 10px; text-align: center; min-height: 120px;">${svg}</div>`;
+  container.innerHTML = `<div style="padding: 10px; display: inline-block;">${svg}</div>`;
+}
+
+function initTreePan(container) {
+  let isDragging = false;
+  let startX, startY, scrollLeft, scrollTop;
+
+  container.addEventListener('mousedown', (e) => {
+    if (e.target.closest('[data-joint-idx]')) return;
+    isDragging = true;
+    container.style.cursor = 'grabbing';
+    startX = e.pageX - container.offsetLeft;
+    startY = e.pageY - container.offsetTop;
+    scrollLeft = container.scrollLeft;
+    scrollTop = container.scrollTop;
+    e.preventDefault();
+  });
+
+  container.addEventListener('mouseleave', () => {
+    isDragging = false;
+    container.style.cursor = 'grab';
+  });
+
+  container.addEventListener('mouseup', () => {
+    isDragging = false;
+    container.style.cursor = 'grab';
+  });
+
+  container.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const x = e.pageX - container.offsetLeft;
+    const y = e.pageY - container.offsetTop;
+    container.scrollLeft = scrollLeft - (x - startX);
+    container.scrollTop = scrollTop - (y - startY);
+  });
 }
 
 function renderEditor() {
@@ -149,6 +183,20 @@ function initTabs() {
 
 // ==================== Inertia file handling ====================
 
+function convertInertiaUnits(data) {
+  // mm → m: CoM ÷ 1000, inertia tensor ÷ 1e6, mass unchanged
+  return data.map(row => {
+    const r = Object.assign({}, row);
+    ['com_x', 'com_y', 'com_z', 'x', 'y', 'z'].forEach(k => {
+      if (k in r) r[k] = r[k] / 1000.0;
+    });
+    ['ixx', 'iyy', 'izz', 'ixy', 'ixz', 'iyz'].forEach(k => {
+      if (k in r) r[k] = r[k] / 1e6;
+    });
+    return r;
+  });
+}
+
 function readInertiaFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -174,7 +222,7 @@ function readInertiaFile(file) {
             if (k in row) row[k] = parseFloat(row[k]) || 0;
           });
         });
-        resolve(data);
+        resolve(convertInertiaUnits(data));
       };
       reader.readAsText(file);
     } else if (ext === 'xlsx' || ext === 'xls') {
@@ -189,7 +237,7 @@ function readInertiaFile(file) {
           Object.keys(row).forEach(k => { newRow[k.toLowerCase().trim()] = row[k]; });
           return newRow;
         });
-        resolve(normalized);
+        resolve(convertInertiaUnits(normalized));
       };
       reader.readAsArrayBuffer(file);
     } else {
@@ -199,47 +247,55 @@ function readInertiaFile(file) {
 }
 
 function generateInertiaTemplate() {
+  // Always mm units: mass(kg), inertia(kg·mm²), com(mm)
   const headers = ['link_name', 'mass', 'ixx', 'iyy', 'izz', 'ixy', 'ixz', 'iyz', 'com_x', 'com_y', 'com_z'];
+
+  const baseLinkName = (AppState.baseState && AppState.baseState.child) ? AppState.baseState.child : 'base_link';
   const example = [
-    ['base_link', 5.0, 0.01, 0.01, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1],
-    ['link_0', 2.0, 0.005, 0.005, 0.005, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05]
+    [baseLinkName, 5.0, 10000, 10000, 10000, 0.0, 0.0, 0.0, 0.0, 0.0, 100],
   ];
 
-  // Add rows for current joints
-  AppState.joints.forEach((j, i) => {
-    if (i >= 1) {
-      example.push([j.child, 1.0, 0.001, 0.001, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
-    }
+  AppState.joints.forEach((j) => {
+    example.push([j.child, 1.0, 1000, 1000, 1000, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
   });
 
   const ws = XLSX.utils.aoa_to_sheet([headers, ...example]);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Inertia');
-  XLSX.writeFile(wb, 'inertia_template.xlsx');
+  XLSX.utils.book_append_sheet(wb, ws, 'Inertia(kg,mm)');
+  XLSX.writeFile(wb, 'inertia_template_mm.xlsx');
 }
 
 // ==================== URDF Download ====================
 
-function generateAndDownloadURDF() {
+let _lastGeneratedURDF = null;
+let _lastGeneratedRobotName = null;
+
+function generateURDFPreview() {
   const robotName = document.getElementById('robot_name_input').value.trim() || 'my_robot';
   const urdfStr = generateURDF(AppState.joints, robotName, AppState.baseState, AppState.inertiaData, AppState.isImported);
 
-  const blob = new Blob([urdfStr], { type: 'text/xml' });
+  _lastGeneratedURDF = urdfStr;
+  _lastGeneratedRobotName = robotName;
+
+  const preview = document.getElementById('urdf_preview');
+  if (preview) preview.textContent = urdfStr;
+
+  const dlBtn = document.getElementById('btn_download_urdf');
+  if (dlBtn) dlBtn.disabled = false;
+
+  showToast('URDF generated. Click Download to save.');
+}
+
+function downloadURDF() {
+  if (!_lastGeneratedURDF) return;
+  const blob = new Blob([_lastGeneratedURDF], { type: 'text/xml' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${robotName}.urdf`;
+  a.download = `${_lastGeneratedRobotName || 'my_robot'}.urdf`;
   a.click();
   URL.revokeObjectURL(url);
-
-  // Show preview - open the details panel automatically
-  const preview = document.getElementById('urdf_preview');
-  if (preview) {
-    preview.textContent = urdfStr;
-    const detailsEl = preview.closest('details');
-    if (detailsEl) detailsEl.open = true;
-  }
-  showToast('URDF generated and downloaded.');
+  showToast('URDF downloaded.');
 }
 
 // ==================== Visualizer panel ====================
@@ -319,6 +375,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initTabs();
   refreshUI();
+
+  // Tree pan — attach once, not on every renderTree()
+  const treeContainer = document.getElementById('tree_container');
+  if (treeContainer) initTreePan(treeContainer);
 
   // ---- Builder tab events ----
 
@@ -426,9 +486,14 @@ document.addEventListener('DOMContentLoaded', () => {
     generateInertiaTemplate();
   });
 
-  // Generate URDF
+  // Generate URDF (preview only)
   document.getElementById('btn_generate_urdf').addEventListener('click', () => {
-    generateAndDownloadURDF();
+    generateURDFPreview();
+  });
+
+  // Download URDF
+  document.getElementById('btn_download_urdf').addEventListener('click', () => {
+    downloadURDF();
   });
 
   // ---- Visualizer tab ----
@@ -479,15 +544,6 @@ document.addEventListener('DOMContentLoaded', () => {
     vizUrdfUpload.value = '';
   });
 
-  // Load current URDF button
-  document.getElementById('btn_viz_load_current').addEventListener('click', () => {
-    const robotName = document.getElementById('robot_name_input').value.trim() || 'my_robot';
-    const urdfStr = generateURDF(AppState.joints, robotName, AppState.baseState, AppState.inertiaData, AppState.isImported);
-    const movableJoints = Visualizer.loadURDF(urdfStr, {});
-    renderVisualizerSliders(movableJoints);
-    showToast('Current robot loaded in visualizer.');
-  });
-
   // Fit camera
   document.getElementById('btn_viz_fit').addEventListener('click', () => {
     Visualizer.fitCamera();
@@ -503,10 +559,8 @@ document.addEventListener('DOMContentLoaded', () => {
     Visualizer.toggleCollision(e.target.checked);
   });
 
-  // Instructions accordion
-  const instrHeader = document.getElementById('instructions_header');
-  const instrBody = document.getElementById('instructions_body');
-  if (instrHeader && instrBody) {
-    instrHeader.addEventListener('click', () => toggleAccordion('instructions_body'));
-  }
+  // Instructions accordion (single listener — no onclick in HTML)
+  document.getElementById('instructions_header').addEventListener('click', () => {
+    toggleAccordion('instructions_body');
+  });
 });

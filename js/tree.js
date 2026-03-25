@@ -193,12 +193,7 @@ function drawTree(joints, selectedIndex, baseState) {
   svgParts.push('</g></svg>');
   const svgContent = svgParts.join('\n');
   
-  // 가로 스크롤을 활성화하는 CSS 스타일이 적용된 div 래퍼(Wrapper) 추가
-  const wrapperStyle = "width: 100%; overflow-x: auto; overflow-y: hidden; white-space: nowrap;";
-  
-  return `<div class="tree-scroll-container" style="${wrapperStyle}">
-    ${svgContent}
-  </div>`;
+  return svgContent;
 }
 
 function octagonPoints(cx, cy, rx, ry) {

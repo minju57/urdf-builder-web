@@ -36,9 +36,9 @@ const AppState = {
     const selectedIdx = this.selectedIndex;
     let parentLink = 'base_link';
 
-    if (selectedIdx === -3) {
-      // base joint selected -> add child of base_link
-      parentLink = 'base_link';
+    if (selectedIdx === -3 || selectedIdx === -2) {
+      // base joint or base_link node selected -> add child of base_link
+      parentLink = (this.baseState && this.baseState.child) ? this.baseState.child : 'base_link';
     } else if (selectedIdx <= -10) {
       // link node selected: -(i+10) encoding -> that joint's child link is parent
       const jointIdx = -(selectedIdx + 10);
@@ -51,7 +51,11 @@ const AppState = {
       parentLink = data[data.length - 1].child;
     }
 
-    const newJoint = getDefaultJoint(data.length, parentLink);
+    const existingNames = new Set(data.map(j => j.name));
+    const existingLinks = new Set(data.map(j => j.child));
+    let idx = data.length;
+    while (existingNames.has(`joint_${idx}`) || existingLinks.has(`link_${idx}`)) idx++;
+    const newJoint = getDefaultJoint(idx, parentLink);
     const newJoints = data.concat([newJoint]);
     this.joints = newJoints;
     this.selectedIndex = newJoints.length - 1;

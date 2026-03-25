@@ -25,7 +25,7 @@
 
   <!-- Instructions -->
   <div class="instructions-panel">
-    <div class="panel-header accordion-closed" id="instructions_header" onclick="toggleAccordion('instructions_body')">
+    <div class="panel-header accordion-closed" id="instructions_header">
       <span>&#x1F4D6; URDF Builder Usage Guide (click to expand)</span>
       <span class="accordion-arrow">&#9654;</span>
     </div>
@@ -45,7 +45,8 @@
           <tr><th>link_name</th><th>mass</th><th>ixx</th><th>iyy</th><th>izz</th><th>ixy</th><th>ixz</th><th>iyz</th><th>com_x</th><th>com_y</th><th>com_z</th></tr>
           <tr><td>base_link</td><td>5.0</td><td>0.01</td><td>0.01</td><td>0.01</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.1</td></tr>
         </table>
-        <p>Row order: base_link &rarr; joint_0's child &rarr; joint_1's child ... Units: mass(kg), inertia(kg&middot;m&sup2;), com(m)</p>
+        <p>Row order: base_link &rarr; joint_0's child &rarr; joint_1's child ...</p>
+        <p>Units: mass(kg), inertia(kg&middot;mm&sup2;), com(mm) &mdash; automatically converted to SI on URDF export</p>
       </div>
     </div>
   </div>
@@ -122,6 +123,9 @@
             <input type="text" id="robot_name_input" value="my_robot" placeholder="Robot name (no spaces)">
           </div>
 
+          <div style="font-size:11px;color:#888;margin-bottom:6px;">
+            Inertia units: mass(kg), inertia(kg&middot;mm&sup2;), com(mm) &mdash; auto-converted to SI on export
+          </div>
           <label class="file-upload-btn">
             <input type="file" id="inertia_upload" accept=".csv,.xlsx">
             &#x1F4C1; Upload Inertia File (.csv / .xlsx)
@@ -132,13 +136,16 @@
           </button>
 
           <button class="btn btn-primary btn-block" id="btn_generate_urdf">
-            &#x1F680; Generate &amp; Download URDF
+            &#x2699;&#xFE0F; Generate URDF
+          </button>
+          <button class="btn btn-success btn-block" id="btn_download_urdf" disabled>
+            &#x2B07; Download URDF
           </button>
 
-          <details>
-            <summary style="cursor:pointer;font-size:12px;color:#666;margin-top:4px;">Preview output</summary>
-            <pre id="urdf_preview"></pre>
-          </details>
+          <div style="margin-top:8px;">
+            <div style="font-size:12px;color:#666;margin-bottom:4px;">Preview output</div>
+            <pre id="urdf_preview"><!-- Generate URDF to see preview --></pre>
+          </div>
         </div>
       </div>
 
@@ -173,10 +180,6 @@
       <!-- Upload Panel -->
       <div class="viz-upload-panel">
         <label>Load URDF in Viewer</label>
-        <button class="btn btn-success btn-block" id="btn_viz_load_current">
-          &#x25B6; Load Current Robot
-        </button>
-        <div style="text-align:center;font-size:11px;color:#aaa;margin:4px 0;">or upload files</div>
         <label class="file-upload-btn">
           <input type="file" id="viz_urdf_upload" accept=".urdf,.stl,.obj" multiple>
           &#x1F4C4; Upload URDF + Mesh files

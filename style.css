@@ -89,6 +89,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
 
 .builder-right {
@@ -141,9 +142,11 @@ body {
 }
 
 #tree_container {
-  min-height: 120px;
+  height: 300px;
+  width: 100%;
   background: #fafafa;
   overflow: auto;
+  cursor: grab;
 }
 
 /* ==================== Controls Bar ==================== */
@@ -455,7 +458,7 @@ body {
   color: #d4d4d4;
   padding: 10px;
   border-radius: 4px;
-  max-height: 300px;
+  height: 500px;
   overflow: auto;
   white-space: pre;
   margin-top: 6px;

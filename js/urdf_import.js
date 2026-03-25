@@ -145,7 +145,9 @@ function parseURDF(xmlString) {
     if (jType === 'fixed') {
       data.axis = 'Fixed';
     } else if (axisElem) {
-      const axVec = (axisElem.getAttribute('xyz') || '1 0 0').trim().split(/\s+/).map(v => parseFloat(v) || 0);
+      const raw = (axisElem.getAttribute('xyz') || '1 0 0').trim().split(/\s+/).map(v => parseFloat(v) || 0);
+      const len = Math.sqrt(raw[0] ** 2 + raw[1] ** 2 + raw[2] ** 2) || 1;
+      const axVec = raw.map(v => v / len);
       if (Math.abs(axVec[1]) > 0.9) data.axis = 'Pitch';
       else if (Math.abs(axVec[2]) > 0.9) data.axis = 'Yaw';
       else data.axis = 'Roll';

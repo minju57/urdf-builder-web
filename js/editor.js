@@ -234,14 +234,14 @@ function renderJointEditor(joint, joints) {
     </div>
     <div id="ed_vis_offset_row" style="${visState.showOffset ? '' : 'display:none'}">
       <div class="form-row">
-        <div class="form-group"><label>Off X</label><input type="number" id="ed_vx" step="any" value="${joint.vis_x || 0}"></div>
-        <div class="form-group"><label>Off Y</label><input type="number" id="ed_vy" step="any" value="${joint.vis_y || 0}"></div>
-        <div class="form-group"><label>Off Z</label><input type="number" id="ed_vz" step="any" value="${joint.vis_z || 0}"></div>
+        <div class="form-group"><label>Off X (mm)</label><input type="number" id="ed_vx" step="any" value="${joint.vis_x || 0}"></div>
+        <div class="form-group"><label>Off Y (mm)</label><input type="number" id="ed_vy" step="any" value="${joint.vis_y || 0}"></div>
+        <div class="form-group"><label>Off Z (mm)</label><input type="number" id="ed_vz" step="any" value="${joint.vis_z || 0}"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Rot R</label><input type="number" id="ed_vr" step="any" value="${joint.vis_roll || 0}"></div>
-        <div class="form-group"><label>Rot P</label><input type="number" id="ed_vp" step="any" value="${joint.vis_pitch || 0}"></div>
-        <div class="form-group"><label>Rot Y</label><input type="number" id="ed_vyaw" step="any" value="${joint.vis_yaw || 0}"></div>
+        <div class="form-group"><label>Rot R (deg)</label><input type="number" id="ed_vr" step="any" value="${joint.vis_roll || 0}"></div>
+        <div class="form-group"><label>Rot P (deg)</label><input type="number" id="ed_vp" step="any" value="${joint.vis_pitch || 0}"></div>
+        <div class="form-group"><label>Rot Y (deg)</label><input type="number" id="ed_vyaw" step="any" value="${joint.vis_yaw || 0}"></div>
       </div>
     </div>
   </div>
@@ -280,14 +280,14 @@ function renderJointEditor(joint, joints) {
       </div>
       <div id="ed_col_offset_row" style="${colState.showOffset ? '' : 'display:none'}">
         <div class="form-row">
-          <div class="form-group"><label>Off X</label><input type="number" id="ed_cx" step="any" value="${joint.col_x || 0}"></div>
-          <div class="form-group"><label>Off Y</label><input type="number" id="ed_cy" step="any" value="${joint.col_y || 0}"></div>
-          <div class="form-group"><label>Off Z</label><input type="number" id="ed_cz" step="any" value="${joint.col_z || 0}"></div>
+          <div class="form-group"><label>Off X (mm)</label><input type="number" id="ed_cx" step="any" value="${joint.col_x || 0}"></div>
+          <div class="form-group"><label>Off Y (mm)</label><input type="number" id="ed_cy" step="any" value="${joint.col_y || 0}"></div>
+          <div class="form-group"><label>Off Z (mm)</label><input type="number" id="ed_cz" step="any" value="${joint.col_z || 0}"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Rot R</label><input type="number" id="ed_cr" step="any" value="${joint.col_roll || 0}"></div>
-          <div class="form-group"><label>Rot P</label><input type="number" id="ed_cp" step="any" value="${joint.col_pitch || 0}"></div>
-          <div class="form-group"><label>Rot Y</label><input type="number" id="ed_cyaw" step="any" value="${joint.col_yaw || 0}"></div>
+          <div class="form-group"><label>Rot R (deg)</label><input type="number" id="ed_cr" step="any" value="${joint.col_roll || 0}"></div>
+          <div class="form-group"><label>Rot P (deg)</label><input type="number" id="ed_cp" step="any" value="${joint.col_pitch || 0}"></div>
+          <div class="form-group"><label>Rot Y (deg)</label><input type="number" id="ed_cyaw" step="any" value="${joint.col_yaw || 0}"></div>
         </div>
       </div>
     </div>
@@ -382,14 +382,14 @@ function renderBaseEditor(baseState) {
     </div>
     <div id="base_vis_offset_row" style="${visState.showOffset ? '' : 'display:none'}">
       <div class="form-row">
-        <div class="form-group"><label>Off X</label><input type="number" id="base_vx" step="any" value="${b.vis_x || 0}"></div>
-        <div class="form-group"><label>Off Y</label><input type="number" id="base_vy" step="any" value="${b.vis_y || 0}"></div>
-        <div class="form-group"><label>Off Z</label><input type="number" id="base_vz" step="any" value="${b.vis_z || 0}"></div>
+        <div class="form-group"><label>Off X (mm)</label><input type="number" id="base_vx" step="any" value="${b.vis_x || 0}"></div>
+        <div class="form-group"><label>Off Y (mm)</label><input type="number" id="base_vy" step="any" value="${b.vis_y || 0}"></div>
+        <div class="form-group"><label>Off Z (mm)</label><input type="number" id="base_vz" step="any" value="${b.vis_z || 0}"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Rot R</label><input type="number" id="base_vr" step="any" value="${b.vis_roll || 0}"></div>
-        <div class="form-group"><label>Rot P</label><input type="number" id="base_vp" step="any" value="${b.vis_pitch || 0}"></div>
-        <div class="form-group"><label>Rot Y</label><input type="number" id="base_vyaw" step="any" value="${b.vis_yaw || 0}"></div>
+        <div class="form-group"><label>Rot R (deg)</label><input type="number" id="base_vr" step="any" value="${b.vis_roll || 0}"></div>
+        <div class="form-group"><label>Rot P (deg)</label><input type="number" id="base_vp" step="any" value="${b.vis_pitch || 0}"></div>
+        <div class="form-group"><label>Rot Y (deg)</label><input type="number" id="base_vyaw" step="any" value="${b.vis_yaw || 0}"></div>
       </div>
     </div>
   </div>
@@ -428,14 +428,14 @@ function renderBaseEditor(baseState) {
       </div>
       <div id="base_col_offset_row" style="${colState.showOffset ? '' : 'display:none'}">
         <div class="form-row">
-          <div class="form-group"><label>Off X</label><input type="number" id="base_cx" step="any" value="${b.col_x || 0}"></div>
-          <div class="form-group"><label>Off Y</label><input type="number" id="base_cy" step="any" value="${b.col_y || 0}"></div>
-          <div class="form-group"><label>Off Z</label><input type="number" id="base_cz" step="any" value="${b.col_z || 0}"></div>
+          <div class="form-group"><label>Off X (mm)</label><input type="number" id="base_cx" step="any" value="${b.col_x || 0}"></div>
+          <div class="form-group"><label>Off Y (mm)</label><input type="number" id="base_cy" step="any" value="${b.col_y || 0}"></div>
+          <div class="form-group"><label>Off Z (mm)</label><input type="number" id="base_cz" step="any" value="${b.col_z || 0}"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Rot R</label><input type="number" id="base_cr" step="any" value="${b.col_roll || 0}"></div>
-          <div class="form-group"><label>Rot P</label><input type="number" id="base_cp" step="any" value="${b.col_pitch || 0}"></div>
-          <div class="form-group"><label>Rot Y</label><input type="number" id="base_cyaw" step="any" value="${b.col_yaw || 0}"></div>
+          <div class="form-group"><label>Rot R (deg)</label><input type="number" id="base_cr" step="any" value="${b.col_roll || 0}"></div>
+          <div class="form-group"><label>Rot P (deg)</label><input type="number" id="base_cp" step="any" value="${b.col_pitch || 0}"></div>
+          <div class="form-group"><label>Rot Y (deg)</label><input type="number" id="base_cyaw" step="any" value="${b.col_yaw || 0}"></div>
         </div>
       </div>
     </div>
