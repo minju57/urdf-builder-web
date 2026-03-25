@@ -181,10 +181,20 @@
       <div class="viz-upload-panel">
         <label>Load URDF in Viewer</label>
         <label class="file-upload-btn">
-          <input type="file" id="viz_urdf_upload" accept=".urdf,.stl,.obj" multiple>
-          &#x1F4C4; Upload URDF + Mesh files
+          <input type="file" id="viz_urdf_upload" accept=".urdf" >
+          &#x1F4C4; Upload URDF (.urdf)
         </label>
-        <div style="font-size:11px;color:#888;">Tip: Select .urdf + optional .stl/.obj files together</div>
+        <label class="file-upload-btn" style="margin-top:4px;">
+          <input type="file" id="viz_mesh_upload" accept=".stl,.obj" multiple>
+          &#x1F4C1; Add Mesh files (.stl / .obj)
+        </label>
+        <div id="viz_file_status" style="font-size:11px;color:#888;margin-top:4px;"></div>
+        <button class="btn btn-primary btn-sm btn-block" id="btn_viz_load" style="margin-top:6px;" disabled>
+          &#x25B6; Load in Viewer
+        </button>
+        <button class="btn btn-secondary btn-sm btn-block" id="btn_viz_clear_files" style="margin-top:4px;">
+          &#x2715; Clear Files
+        </button>
       </div>
 
       <!-- Joint Sliders -->

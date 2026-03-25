@@ -500,22 +500,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   Visualizer.setup('viz_canvas');
 
-  // Load URDF to viewer
-  const vizUrdfUpload = document.getElementById('viz_urdf_upload');
-  vizUrdfUpload.addEventListener('change', async (e) => {
+  // Visualizer file accumulation state
+  let vizUrdfFile = null;
+  let vizMeshFiles = {};  // filename → {type, data}
+
+  function updateVizFileStatus() {
+    const status = document.getElementById('viz_file_status');
+    const loadBtn = document.getElementById('btn_viz_load');
+    const lines = [];
+    if (vizUrdfFile) lines.push(`URDF: ${vizUrdfFile.name}`);
+    else lines.push('URDF: 없음');
+    const meshCount = Object.keys(vizMeshFiles).length;
+    if (meshCount > 0) lines.push(`Mesh: ${meshCount}개 (${Object.keys(vizMeshFiles).join(', ')})`);
+    status.textContent = lines.join(' | ');
+    loadBtn.disabled = !vizUrdfFile;
+  }
+
+  // URDF upload
+  document.getElementById('viz_urdf_upload').addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    vizUrdfFile = f;
+    updateVizFileStatus();
+    e.target.value = '';
+  });
+
+  // Mesh upload (accumulate)
+  document.getElementById('viz_mesh_upload').addEventListener('change', async (e) => {
     const files = Array.from(e.target.files);
-    const urdfFile = files.find(f => f.name.toLowerCase().endsWith('.urdf'));
-    const meshFiles = files.filter(f => !f.name.toLowerCase().endsWith('.urdf'));
-
-    if (!urdfFile) {
-      // Try to use currently built URDF
-      showToast('No .urdf file selected. Use "Load Current URDF" button.', 'error');
-      return;
-    }
-
-    // Read mesh files into meshMap
-    const meshMap = {};
-    for (const f of meshFiles) {
+    for (const f of files) {
       const key = f.name.toLowerCase();
       const ext = key.split('.').pop();
       const data = await new Promise((res) => {
@@ -524,24 +537,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ext === 'obj') reader.readAsText(f);
         else reader.readAsDataURL(f);
       });
-
       if (ext === 'obj') {
-        meshMap[key] = { type: 'obj', data };
+        vizMeshFiles[key] = { type: 'obj', data };
       } else {
-        // Strip data URL prefix for base64
-        const base64 = data.split(',')[1] || data;
-        meshMap[key] = { type: 'stl', data: base64 };
+        vizMeshFiles[key] = { type: 'stl', data: data.split(',')[1] || data };
       }
     }
+    updateVizFileStatus();
+    e.target.value = '';
+  });
 
+  // Load button
+  document.getElementById('btn_viz_load').addEventListener('click', () => {
+    if (!vizUrdfFile) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const movableJoints = Visualizer.loadURDF(ev.target.result, meshMap);
+      const movableJoints = Visualizer.loadURDF(ev.target.result, vizMeshFiles);
       renderVisualizerSliders(movableJoints);
       showToast('URDF loaded in visualizer.');
     };
-    reader.readAsText(urdfFile);
-    vizUrdfUpload.value = '';
+    reader.readAsText(vizUrdfFile);
+  });
+
+  // Clear files
+  document.getElementById('btn_viz_clear_files').addEventListener('click', () => {
+    vizUrdfFile = null;
+    vizMeshFiles = {};
+    updateVizFileStatus();
+    showToast('Files cleared.');
   });
 
   // Fit camera
