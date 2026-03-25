@@ -128,7 +128,7 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
     childMap[p].push(j);
   }
 
-  const hasBase = !isImported && baseJoint != null && !baseJoint.no_base;
+  const hasBase = baseJoint != null && !baseJoint.no_base;
 
   // Build link_name → inertia row map for name-based matching
   const inertiaMap = {};
