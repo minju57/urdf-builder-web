@@ -130,6 +130,18 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
 
   const hasBase = !isImported && baseJoint != null && !baseJoint.no_base;
 
+  // Build link_name → inertia row map for name-based matching
+  const inertiaMap = {};
+  if (inertiaData) {
+    for (const row of inertiaData) {
+      const key = (row.link_name || '').toString().trim();
+      if (key) inertiaMap[key] = row;
+    }
+  }
+  function getInertia(linkName) {
+    return inertiaMap[linkName] || null;
+  }
+
   let baseLinkName = 'base_link';
 
   if (hasBase) {
@@ -252,13 +264,13 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
     }
 
     // Base inertia
-    if (inertiaData && inertiaData.length > 0) {
-      const d = inertiaData[0];
+    const bd = getInertia(baseLinkName);
+    if (bd) {
       lines.push(inertialTag(L2,
-        d.mass ?? d.m ?? 1.0,
-        [d.com_x ?? d.x ?? 0, d.com_y ?? d.y ?? 0, d.com_z ?? d.z ?? 0],
-        d.ixx ?? 0.01, d.ixy ?? 0, d.ixz ?? 0,
-        d.iyy ?? 0.01, d.iyz ?? 0, d.izz ?? 0.01
+        bd.mass ?? bd.m ?? 1.0,
+        [bd.com_x ?? bd.x ?? 0, bd.com_y ?? bd.y ?? 0, bd.com_z ?? bd.z ?? 0],
+        bd.ixx ?? 0.01, bd.ixy ?? 0, bd.ixz ?? 0,
+        bd.iyy ?? 0.01, bd.iyz ?? 0, bd.izz ?? 0.01
       ));
     } else {
       lines.push(inertialTag(L2, 10.0));
@@ -417,10 +429,9 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
       lines.push(endTag(L2, 'collision'));
     }
 
-    // Inertia
-    const dataIdx = i + 1;
-    if (inertiaData && inertiaData.length > dataIdx) {
-      const d = inertiaData[dataIdx];
+    // Inertia — matched by child link name
+    const d = getInertia(cLink);
+    if (d) {
       lines.push(inertialTag(L2,
         d.mass ?? d.m ?? 1.0,
         [d.com_x ?? d.x ?? 0, d.com_y ?? d.y ?? 0, d.com_z ?? d.z ?? 0],
