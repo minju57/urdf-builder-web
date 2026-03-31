@@ -189,25 +189,41 @@ function parseURDF(xmlString) {
         }
       }
 
-      const col = directChild(linkObj, 'collision');
-      if (col) {
-        data.col_enabled = true;
-        const { xyz: cxyz, rpy: crpy } = parseOriginElem(col);
-        data.col_x = cxyz[0] * 1000;
-        data.col_y = cxyz[1] * 1000;
-        data.col_z = cxyz[2] * 1000;
-        data.col_roll = radToDeg(crpy[0]);
-        data.col_pitch = radToDeg(crpy[1]);
-        data.col_yaw = radToDeg(crpy[2]);
-
-        const geomElem = directChild(col, 'geometry');
-        const { gType, dims } = parseGeometryElem(geomElem);
-        if (gType !== 'None' && gType !== 'Mesh') {
-          data.col_type = gType;
-          data.col_dim1 = dims[0];
-          data.col_dim2 = dims[1];
-          data.col_dim3 = dims[2];
+      const cols = directChildren(linkObj, 'collision');
+      data.col_spheres = [];
+      if (cols.length > 0) {
+        const firstCol = cols[0];
+        const firstGeomElem = directChild(firstCol, 'geometry');
+        const firstGeom = parseGeometryElem(firstGeomElem);
+        if (firstGeom.gType !== 'Sphere') {
+          data.col_enabled = true;
+          const { xyz: cxyz, rpy: crpy } = parseOriginElem(firstCol);
+          data.col_x = cxyz[0] * 1000;
+          data.col_y = cxyz[1] * 1000;
+          data.col_z = cxyz[2] * 1000;
+          data.col_roll = radToDeg(crpy[0]);
+          data.col_pitch = radToDeg(crpy[1]);
+          data.col_yaw = radToDeg(crpy[2]);
+          if (firstGeom.gType !== 'None' && firstGeom.gType !== 'Mesh') {
+            data.col_type = firstGeom.gType;
+            data.col_dim1 = firstGeom.dims[0];
+            data.col_dim2 = firstGeom.dims[1];
+            data.col_dim3 = firstGeom.dims[2];
+          }
         }
+        cols.forEach(col => {
+          const geomElem = directChild(col, 'geometry');
+          const { gType, dims } = parseGeometryElem(geomElem);
+          if (gType === 'Sphere') {
+            const { xyz: cxyz } = parseOriginElem(col);
+            data.col_spheres.push({
+              x: cxyz[0] * 1000,
+              y: cxyz[1] * 1000,
+              z: cxyz[2] * 1000,
+              radius: dims[0]
+            });
+          }
+        });
       }
     }
 
@@ -257,25 +273,41 @@ function parseURDF(xmlString) {
       }
     }
 
-    const col = directChild(bl, 'collision');
-    if (col) {
-      baseJoint.col_enabled = true;
-      const { xyz: cxyz, rpy: crpy } = parseOriginElem(col);
-      baseJoint.col_x = cxyz[0] * 1000;
-      baseJoint.col_y = cxyz[1] * 1000;
-      baseJoint.col_z = cxyz[2] * 1000;
-      baseJoint.col_roll = radToDeg(crpy[0]);
-      baseJoint.col_pitch = radToDeg(crpy[1]);
-      baseJoint.col_yaw = radToDeg(crpy[2]);
-
-      const geomElem = directChild(col, 'geometry');
-      const { gType, dims } = parseGeometryElem(geomElem);
-      if (gType !== 'None' && gType !== 'Mesh') {
-        baseJoint.col_type = gType;
-        baseJoint.col_dim1 = dims[0];
-        baseJoint.col_dim2 = dims[1];
-        baseJoint.col_dim3 = dims[2];
+    const baseCols = directChildren(bl, 'collision');
+    baseJoint.col_spheres = [];
+    if (baseCols.length > 0) {
+      const firstCol = baseCols[0];
+      const firstGeomElem = directChild(firstCol, 'geometry');
+      const firstGeom = parseGeometryElem(firstGeomElem);
+      if (firstGeom.gType !== 'Sphere') {
+        baseJoint.col_enabled = true;
+        const { xyz: cxyz, rpy: crpy } = parseOriginElem(firstCol);
+        baseJoint.col_x = cxyz[0] * 1000;
+        baseJoint.col_y = cxyz[1] * 1000;
+        baseJoint.col_z = cxyz[2] * 1000;
+        baseJoint.col_roll = radToDeg(crpy[0]);
+        baseJoint.col_pitch = radToDeg(crpy[1]);
+        baseJoint.col_yaw = radToDeg(crpy[2]);
+        if (firstGeom.gType !== 'None' && firstGeom.gType !== 'Mesh') {
+          baseJoint.col_type = firstGeom.gType;
+          baseJoint.col_dim1 = firstGeom.dims[0];
+          baseJoint.col_dim2 = firstGeom.dims[1];
+          baseJoint.col_dim3 = firstGeom.dims[2];
+        }
       }
+      baseCols.forEach(col => {
+        const geomElem = directChild(col, 'geometry');
+        const { gType, dims } = parseGeometryElem(geomElem);
+        if (gType === 'Sphere') {
+          const { xyz: cxyz } = parseOriginElem(col);
+          baseJoint.col_spheres.push({
+            x: cxyz[0] * 1000,
+            y: cxyz[1] * 1000,
+            z: cxyz[2] * 1000,
+            radius: dims[0]
+          });
+        }
+      });
     }
   }
 

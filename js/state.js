@@ -106,6 +106,11 @@ const AppState = {
     // Merge new values
     const j = Object.assign({}, data[idx]);
 
+    // col_spheres는 배열이므로 keys 루프 밖에서 직접 복사
+    if ('col_spheres' in newValues) {
+      j.col_spheres = Array.isArray(newValues.col_spheres) ? newValues.col_spheres : [];
+    }
+
     const keys = [
       'name', 'parent', 'child', 'axis',
       'x', 'y', 'z', 'r', 'p', 'yaw', 'low', 'up',
@@ -161,6 +166,10 @@ const AppState = {
   },
 
   applyBaseChanges(newValues) {
+    if ('col_spheres' in newValues) {
+      b.col_spheres = Array.isArray(newValues.col_spheres) ? newValues.col_spheres : [];
+    }
+
     const keys = [
       'mode', 'x', 'y', 'z', 'r', 'p', 'yaw',
       'vis_type', 'vis_mesh', 'vis_dim1', 'vis_dim2', 'vis_dim3',

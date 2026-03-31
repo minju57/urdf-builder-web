@@ -263,6 +263,22 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
       lines.push(endTag(L2, 'collision'));
     }
 
+    // Base sphere pack collisions
+    if (baseJoint.col_spheres && baseJoint.col_spheres.length > 0) {
+      baseJoint.col_spheres.forEach((sp, si) => {
+        const sx = (sp.x || 0) / 1000.0;
+        const sy = (sp.y || 0) / 1000.0;
+        const sz = (sp.z || 0) / 1000.0;
+        const sr = (sp.radius || 0.02) / 1000.0;
+        lines.push(startTag(L2, 'collision', `name="sphere_col_${si}"`));
+        lines.push(tag(L3, 'origin', `xyz="${fmt4(sx)} ${fmt4(sy)} ${fmt4(sz)}" rpy="0 0 0"`));
+        lines.push(startTag(L3, 'geometry'));
+        lines.push(tag(L4, 'sphere', `radius="${fmt4(sr)}"`));
+        lines.push(endTag(L3, 'geometry'));
+        lines.push(endTag(L2, 'collision'));
+      });
+    }
+
     // Base inertia
     const bd = getInertia(baseLinkName);
     if (bd) {
@@ -427,6 +443,22 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
       else lines.push(tag(L4, 'cylinder', `radius="${cd1}" length="${cd2}"`));
       lines.push(endTag(L3, 'geometry'));
       lines.push(endTag(L2, 'collision'));
+    }
+
+    // Sphere pack collisions
+    if (j.col_spheres && j.col_spheres.length > 0) {
+      j.col_spheres.forEach((sp, si) => {
+        const sx = (sp.x || 0) / 1000.0;
+        const sy = (sp.y || 0) / 1000.0;
+        const sz = (sp.z || 0) / 1000.0;
+        const sr = (sp.radius || 0.02) / 1000.0;
+        lines.push(startTag(L2, 'collision', `name="sphere_col_${si}"`));
+        lines.push(tag(L3, 'origin', `xyz="${fmt4(sx)} ${fmt4(sy)} ${fmt4(sz)}" rpy="0 0 0"`));
+        lines.push(startTag(L3, 'geometry'));
+        lines.push(tag(L4, 'sphere', `radius="${fmt4(sr)}"`));
+        lines.push(endTag(L3, 'geometry'));
+        lines.push(endTag(L2, 'collision'));
+      });
     }
 
     // Inertia — matched by child link name

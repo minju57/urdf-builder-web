@@ -62,9 +62,6 @@ const Visualizer = {
     grid.rotateX(Math.PI / 2);
     this.scene.add(grid);
 
-    // Axes
-    this.scene.add(new THREE.AxesHelper(1));
-
     // Root group
     this.rootGroup = new THREE.Group();
     this.scene.add(this.rootGroup);
@@ -188,9 +185,11 @@ const Visualizer = {
         const vMesh = this.createGeometry(info.visual, false);
         if (vMesh) parent.add(vMesh);
       }
-      if (info.collision) {
-        const cMesh = this.createGeometry(info.collision, true);
-        if (cMesh) parent.add(cMesh);
+      if (info.collisions) {
+        for (const col of info.collisions) {
+          const cMesh = this.createGeometry(col, true);
+          if (cMesh) parent.add(cMesh);
+        }
       }
     }
     const tree = this.robotData.tree;
@@ -204,13 +203,14 @@ const Visualizer = {
         fixedGroup.rotation.set(jr, jp, jyaw, 'ZYX');
         parent.add(fixedGroup);
 
-        const axes = this.createThickFrame(0.15, 0.005);
-        axes.visible = false;
-        fixedGroup.add(axes);
-        this.jointAxes[jName] = axes;
-
         const movingGroup = new THREE.Group();
         fixedGroup.add(movingGroup);
+
+        const axes = this.createThickFrame(0.15, 0.005);
+        axes.visible = false;
+        movingGroup.add(axes);
+        this.jointAxes[jName] = axes;
+
         this.jointMeshes[jName] = { group: movingGroup, axis: new THREE.Vector3(...jInfo.axis) };
         this.buildRobot(jInfo.child, movingGroup);
       }
@@ -254,7 +254,7 @@ const Visualizer = {
       const defaultColor = [colorVal, colorVal, colorVal];
       colorIdx++;
 
-      const linkInfo = { name, visual: null, collision: null, color: defaultColor };
+      const linkInfo = { name, visual: null, collisions: [], color: defaultColor };
 
       const visual = this._dc(link, 'visual');
       if (visual) {
@@ -281,8 +281,9 @@ const Visualizer = {
         }
       }
 
-      const collision = this._dc(link, 'collision');
-      if (collision) {
+      const collisionElems = this._dca(link, 'collision');
+      const collisions = [];
+      for (const collision of collisionElems) {
         const colData = this._parseGeometryFromElem(collision, meshMap, true);
         if (colData) {
           const origin = this._dc(collision, 'origin');
@@ -293,9 +294,10 @@ const Visualizer = {
           } else {
             colData.origin = [0, 0, 0, 0, 0, 0];
           }
-          linkInfo.collision = colData;
+          collisions.push(colData);
         }
       }
+      linkInfo.collisions = collisions;
 
       links[name] = linkInfo;
     }
@@ -471,5 +473,21 @@ const Visualizer = {
     if (this.jointAxes[jointName]) {
       this.jointAxes[jointName].visible = visible;
     }
+  },
+
+  getAllJointsInOrder() {
+    if (!this.robotData) return [];
+    const result = [];
+    const traverse = (linkName) => {
+      const children = this.robotData.tree[linkName];
+      if (!children) return;
+      for (const jName of children) {
+        const j = this.robotData.joints[jName];
+        result.push({ name: jName, type: j.type, min: j.limits[0], max: j.limits[1] });
+        traverse(j.child);
+      }
+    };
+    traverse(this.robotData.base);
+    return result;
   }
 };

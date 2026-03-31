@@ -291,6 +291,14 @@ function renderJointEditor(joint, joints) {
         </div>
       </div>
     </div>
+    <div style="border-top:1px solid #ddd;margin-top:8px;padding-top:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:12px;font-weight:600;">Sphere Pack</span>
+        <button class="btn btn-secondary btn-sm" onclick="addColSphere('ed')">+ Add Sphere</button>
+      </div>
+      <div style="font-size:10px;color:#888;margin-bottom:4px;">Sphere Collision Array — 위치/반지름 단위: mm</div>
+      <div id="ed_sphere_list">${buildSphereListHtml('ed', joint.col_spheres || [])}</div>
+    </div>
   </div>
 </div>`;
 }
@@ -439,6 +447,14 @@ function renderBaseEditor(baseState) {
         </div>
       </div>
     </div>
+    <div style="border-top:1px solid #ddd;margin-top:8px;padding-top:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:12px;font-weight:600;">Sphere Pack</span>
+        <button class="btn btn-secondary btn-sm" onclick="addColSphere('base')">+ Add Sphere</button>
+      </div>
+      <div style="font-size:10px;color:#888;margin-bottom:4px;">구형 충돌체 배치 — 위치/반지름 단위: mm</div>
+      <div id="base_sphere_list">${buildSphereListHtml('base', b.col_spheres || [])}</div>
+    </div>
   </div>
 </div>`;
 }
@@ -471,7 +487,8 @@ function getJointFromForm() {
     col_type: getVal('ed_col_type'),
     col_dim1: getNum('ed_cd1'), col_dim2: getNum('ed_cd2'), col_dim3: getNum('ed_cd3'),
     col_x: getNum('ed_cx'), col_y: getNum('ed_cy'), col_z: getNum('ed_cz'),
-    col_roll: getNum('ed_cr'), col_pitch: getNum('ed_cp'), col_yaw: getNum('ed_cyaw')
+    col_roll: getNum('ed_cr'), col_pitch: getNum('ed_cp'), col_yaw: getNum('ed_cyaw'),
+    col_spheres: readColSpheres('ed')
   };
 }
 
@@ -497,7 +514,8 @@ function getBaseFromForm() {
     col_type: getVal('base_col_type') || 'Cylinder',
     col_dim1: getNum('base_cd1'), col_dim2: getNum('base_cd2'), col_dim3: getNum('base_cd3'),
     col_x: getNum('base_cx'), col_y: getNum('base_cy'), col_z: getNum('base_cz'),
-    col_roll: getNum('base_cr'), col_pitch: getNum('base_cp'), col_yaw: getNum('base_cyaw')
+    col_roll: getNum('base_cr'), col_pitch: getNum('base_cp'), col_yaw: getNum('base_cyaw'),
+    col_spheres: readColSpheres('base')
   };
 }
 
@@ -602,4 +620,60 @@ function escH(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+// --- Sphere Pack helpers ---
+
+function buildSphereListHtml(prefix, spheres) {
+  if (!spheres || spheres.length === 0) return '';
+  return spheres.map(sp => `
+    <div class="sphere-row" style="display:flex;gap:4px;margin-bottom:4px;align-items:flex-end;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">X(mm)</label><input type="number" class="sp-x" step="any" value="${sp.x || 0}" style="width:55px;"></div>
+      <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">Y(mm)</label><input type="number" class="sp-y" step="any" value="${sp.y || 0}" style="width:55px;"></div>
+      <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">Z(mm)</label><input type="number" class="sp-z" step="any" value="${sp.z || 0}" style="width:55px;"></div>
+      <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">R(mm)</label><input type="number" class="sp-r" step="any" value="${sp.radius || 20}" style="width:55px;"></div>
+      <button class="btn btn-danger btn-sm" style="height:28px;" onclick="removeColSphere(this)">×</button>
+    </div>
+  `).join('');
+}
+
+function renderColSpheres(prefix, spheres) {
+  const container = document.getElementById(`${prefix}_sphere_list`);
+  if (!container) return;
+  container.innerHTML = buildSphereListHtml(prefix, spheres);
+}
+
+function addColSphere(prefix) {
+  const container = document.getElementById(`${prefix}_sphere_list`);
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'sphere-row';
+  row.style.cssText = 'display:flex;gap:4px;margin-bottom:4px;align-items:flex-end;flex-wrap:wrap;';
+  row.innerHTML = `
+    <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">X(mm)</label><input type="number" class="sp-x" step="any" value="0" style="width:55px;"></div>
+    <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">Y(mm)</label><input type="number" class="sp-y" step="any" value="0" style="width:55px;"></div>
+    <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">Z(mm)</label><input type="number" class="sp-z" step="any" value="0" style="width:55px;"></div>
+    <div style="display:flex;flex-direction:column;"><label style="font-size:10px;">R(mm)</label><input type="number" class="sp-r" step="any" value="20" style="width:55px;"></div>
+    <button class="btn btn-danger btn-sm" style="height:28px;" onclick="removeColSphere(this)">×</button>
+  `;
+  container.appendChild(row);
+}
+
+function removeColSphere(btn) {
+  btn.closest('.sphere-row').remove();
+}
+
+function readColSpheres(prefix) {
+  const container = document.getElementById(`${prefix}_sphere_list`);
+  if (!container) return [];
+  const spheres = [];
+  container.querySelectorAll('.sphere-row').forEach(row => {
+    spheres.push({
+      x: parseFloat(row.querySelector('.sp-x').value) || 0,
+      y: parseFloat(row.querySelector('.sp-y').value) || 0,
+      z: parseFloat(row.querySelector('.sp-z').value) || 0,
+      radius: parseFloat(row.querySelector('.sp-r').value) || 20
+    });
+  });
+  return spheres;
 }

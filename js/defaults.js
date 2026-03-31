@@ -16,7 +16,8 @@ function getDefaultBaseJoint() {
     col_type: 'Cylinder',
     col_dim1: 50, col_dim2: 100, col_dim3: 50,
     col_x: 0, col_y: 0, col_z: 0,
-    col_roll: 0, col_pitch: 0, col_yaw: 0
+    col_roll: 0, col_pitch: 0, col_yaw: 0,
+    col_spheres: []
   };
 }
 
@@ -39,6 +40,7 @@ function getDefaultJoint(index, parentName = 'base_link') {
     col_type: 'Cylinder',
     col_dim1: 40, col_dim2: 100, col_dim3: 40,
     col_x: 0, col_y: 0, col_z: 0,
-    col_roll: 0, col_pitch: 0, col_yaw: 0
+    col_roll: 0, col_pitch: 0, col_yaw: 0,
+    col_spheres: []
   };
 }

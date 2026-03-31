@@ -309,20 +309,49 @@ function renderVisualizerSliders(movableJoints) {
 
   vizJointValues = movableJoints.map(() => 0);
 
-  if (movableJoints.length === 0) {
-    panel.innerHTML = '<div class="empty-state">No movable joints found.</div>';
+  // Build index map: joint name → slider index (for movable joints)
+  const movableIndexMap = {};
+  movableJoints.forEach((j, i) => { movableIndexMap[j.name] = i; });
+
+  // Get ALL joints in kinematic tree order (fixed + movable)
+  const allJoints = Visualizer.getAllJointsInOrder();
+
+  if (allJoints.length === 0) {
+    panel.innerHTML = '<div class="empty-state">No joints found.</div>';
     return;
   }
 
   let html = '<div class="slider-list">';
-  movableJoints.forEach((j, i) => {
-    html += `
+  allJoints.forEach(j => {
+    const cbId = `frame_cb_${j.name.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const hasFrame = !!Visualizer.jointAxes[j.name];
+    const isMovable = j.name in movableIndexMap;
+    const i = movableIndexMap[j.name];
+
+    if (isMovable) {
+      html += `
 <div class="slider-item">
-  <label>${escH(j.name)} <span class="slider-val" id="slider_val_${i}">0.0°</span></label>
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <label>${escH(j.name)} <span class="slider-val" id="slider_val_${i}">0.0°</span></label>
+    ${hasFrame ? `<label style="display:flex;align-items:center;gap:3px;font-size:11px;cursor:pointer;">
+      <input type="checkbox" id="${cbId}" onchange="Visualizer.setJointAxisVisible('${escH(j.name)}', this.checked)"> Frame
+    </label>` : ''}
+  </div>
   <input type="range" id="joint_slider_${i}" min="${j.min.toFixed(1)}" max="${j.max.toFixed(1)}" step="0.5" value="0"
     oninput="onSliderChange(${i}, this.value)">
   <span class="slider-range">${j.min.toFixed(0)}° ~ ${j.max.toFixed(0)}°</span>
 </div>`;
+    } else {
+      html += `
+<div class="slider-item" style="opacity:0.65;">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <label style="font-size:11px;">${escH(j.name)} <span style="color:#999;">[fixed]</span></label>
+    ${hasFrame ? `<label style="display:flex;align-items:center;gap:3px;font-size:11px;cursor:pointer;">
+      <input type="checkbox" id="${cbId}" onchange="Visualizer.setJointAxisVisible('${escH(j.name)}', this.checked)"> Frame
+    </label>` : ''}
+  </div>
+</div>`;
+    }
   });
   html += '</div>';
   html += '<button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="resetAllJoints()">Reset All</button>';
