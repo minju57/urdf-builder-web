@@ -148,9 +148,9 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
     baseLinkName = baseJoint.child || 'base_link';
     const mode = baseJoint.mode || 'Fixed';
 
-    const bx = (baseJoint.x || 0) / 1000.0;
-    const by = (baseJoint.y || 0) / 1000.0;
-    const bz = (baseJoint.z || 1000) / 1000.0;
+    const bx = (baseJoint.x != null ? baseJoint.x : 0) / 1000.0;
+    const by = (baseJoint.y != null ? baseJoint.y : 0) / 1000.0;
+    const bz = (baseJoint.z != null ? baseJoint.z : 1000) / 1000.0;
     const br = degToRad(baseJoint.r || 0);
     const bp = degToRad(baseJoint.p || 0);
     const byaw = degToRad(baseJoint.yaw || 0);
@@ -194,16 +194,18 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
           const dist = Math.sqrt((j0.x / 1000) ** 2 + (j0.y / 1000) ** 2);
           if (dist > 0.05) bodyRadius = dist * 1.1;
         }
-        lines.push(tag(L3, 'origin', 'xyz="0 0 -0.5" rpy="0 0 0"'));
+        const autoLen = Math.abs(bz) > 1e-6 ? Math.abs(bz) : 1.0;
+        lines.push(tag(L3, 'origin', `xyz="0 0 ${fmt4(-autoLen / 2)}" rpy="0 0 0"`));
         lines.push(startTag(L3, 'geometry'));
-        lines.push(tag(L4, 'cylinder', `radius="${fmt4(bodyRadius)}" length="1.0"`));
+        lines.push(tag(L4, 'cylinder', `radius="${fmt4(bodyRadius)}" length="${fmt4(autoLen)}"`));
         lines.push(endTag(L3, 'geometry'));
 
       } else if (baseVisType === 'Auto (Box)') {
         const bodySize = 0.16;
-        lines.push(tag(L3, 'origin', 'xyz="0 0 -0.5" rpy="0 0 0"'));
+        const autoLen = Math.abs(bz) > 1e-6 ? Math.abs(bz) : 1.0;
+        lines.push(tag(L3, 'origin', `xyz="0 0 ${fmt4(-autoLen / 2)}" rpy="0 0 0"`));
         lines.push(startTag(L3, 'geometry'));
-        lines.push(tag(L4, 'box', `size="${bodySize} ${bodySize} 1.0"`));
+        lines.push(tag(L4, 'box', `size="${bodySize} ${bodySize} ${fmt4(autoLen)}"`));
         lines.push(endTag(L3, 'geometry'));
 
       } else if (baseVisType === 'Mesh') {
