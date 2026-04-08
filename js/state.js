@@ -166,10 +166,6 @@ const AppState = {
   },
 
   applyBaseChanges(newValues) {
-    if ('col_spheres' in newValues) {
-      b.col_spheres = Array.isArray(newValues.col_spheres) ? newValues.col_spheres : [];
-    }
-
     const keys = [
       'mode', 'x', 'y', 'z', 'r', 'p', 'yaw',
       'vis_type', 'vis_mesh', 'vis_dim1', 'vis_dim2', 'vis_dim3',
@@ -180,6 +176,9 @@ const AppState = {
     const strKeys = new Set(['mode', 'vis_type', 'vis_mesh', 'col_type', 'col_enabled']);
 
     const b = Object.assign({}, this.baseState);
+    if ('col_spheres' in newValues) {
+      b.col_spheres = Array.isArray(newValues.col_spheres) ? newValues.col_spheres : [];
+    }
     for (const key of keys) {
       if (!(key in newValues)) continue;
       let val = newValues[key];
