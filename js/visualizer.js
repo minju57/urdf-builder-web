@@ -160,7 +160,7 @@ const Visualizer = {
     if (mesh && info.origin) {
       const [x, y, z, r, p, yaw] = info.origin;
       mesh.position.set(x, y, z);
-      mesh.rotation.set(r, p, yaw, 'ZYX');
+      mesh.rotation.set(r, p, yaw, 'XYZ');
     }
 
     if (isCollision && mesh) {
@@ -200,7 +200,7 @@ const Visualizer = {
         const [jx, jy, jz] = jInfo.xyz;
         const [jr, jp, jyaw] = jInfo.rpy;
         fixedGroup.position.set(jx, jy, jz);
-        fixedGroup.rotation.set(jr, jp, jyaw, 'ZYX');
+        fixedGroup.rotation.set(jr, jp, jyaw, 'XYZ');
         parent.add(fixedGroup);
 
         const movingGroup = new THREE.Group();
