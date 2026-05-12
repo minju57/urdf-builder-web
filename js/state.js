@@ -130,7 +130,8 @@ const AppState = {
       if (!strKeys.has(key)) {
         const n = parseFloat(val);
         val = isNaN(n) ? 0.0 : n;
-        if (angleKeys.has(key)) {
+        const isLimitKey = (key === 'low' || key === 'up');
+        if (angleKeys.has(key) && !(isLimitKey && j.type === 'prismatic')) {
           val = Math.max(-180.0, Math.min(180.0, val));
         }
       }
