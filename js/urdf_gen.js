@@ -312,9 +312,15 @@ function generateURDF(joints, robotName, baseJoint, inertiaData, isImported) {
     const jp = degToRad(j.p || 0);
     const jyaw = degToRad(j.yaw || 0);
     const axis = getAxisVector(j.axis);
-    const low = degToRad(j.low !== undefined ? j.low : -180);
-    const up = degToRad(j.up !== undefined ? j.up : 180);
     const jType = j.type || 'revolute';
+    let low, up;
+    if (jType === 'prismatic') {
+      low = (j.low !== undefined ? j.low : -500) / 1000.0;
+      up = (j.up !== undefined ? j.up : 500) / 1000.0;
+    } else {
+      low = degToRad(j.low !== undefined ? j.low : -180);
+      up = degToRad(j.up !== undefined ? j.up : 180);
+    }
 
     // Write joint
     lines.push(startTag(L1, 'joint', `name="${xmlAttr(jName)}" type="${jType}"`));

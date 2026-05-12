@@ -158,8 +158,13 @@ function parseURDF(xmlString) {
     if (limitElem) {
       const lower = limitElem.getAttribute('lower');
       const upper = limitElem.getAttribute('upper');
-      if (lower) data.low = radToDeg(parseFloat(lower));
-      if (upper) data.up = radToDeg(parseFloat(upper));
+      if (jType === 'prismatic') {
+        if (lower) data.low = parseFloat(lower) * 1000; // meters to mm
+        if (upper) data.up = parseFloat(upper) * 1000;
+      } else {
+        if (lower) data.low = radToDeg(parseFloat(lower));
+        if (upper) data.up = radToDeg(parseFloat(upper));
+      }
     }
 
     // Visual/Collision from child link

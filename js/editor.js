@@ -135,8 +135,25 @@ function renderJointEditor(joint, joints) {
   const visState = getVisUIState(joint.vis_type || 'Auto (Cylinder)');
   const colState = getColUIState(joint.col_enabled, joint.col_type || 'Cylinder');
 
-  const axisOptions = ['Roll', 'Pitch', 'Yaw', 'Fixed'];
-  const currentAxis = joint.type === 'fixed' ? 'Fixed' : (joint.axis || 'Roll');
+  const axisOptions = ['Roll', 'Pitch', 'Yaw'];
+  const jointTypeOptions = ['Revolute', 'Prismatic', 'Fixed'];
+
+  let currentJointType;
+  if (joint.type === 'fixed' || joint.axis === 'Fixed') {
+    currentJointType = 'Fixed';
+  } else if (joint.type === 'prismatic') {
+    currentJointType = 'Prismatic';
+  } else {
+    currentJointType = 'Revolute';
+  }
+
+  const currentAxis = (currentJointType !== 'Fixed') ? (joint.axis || 'Roll') : 'Roll';
+  const axisVisible = currentJointType !== 'Fixed';
+  const limitLabel = currentJointType === 'Prismatic' ? 'mm' : 'deg';
+
+  const jointTypeRadios = jointTypeOptions.map(t =>
+    `<label class="radio-label"><input type="radio" name="ed_joint_type" value="${t}" ${t === currentJointType ? 'checked' : ''}> ${t}</label>`
+  ).join(' ');
   const axisRadios = axisOptions.map(a =>
     `<label class="radio-label"><input type="radio" name="ed_axis" value="${a}" ${a === currentAxis ? 'checked' : ''}> ${a}</label>`
   ).join(' ');
@@ -151,7 +168,7 @@ function renderJointEditor(joint, joints) {
     `<option value="${c}" ${c === (joint.col_type || 'Cylinder') ? 'selected' : ''}>${c}</option>`
   ).join('');
 
-  const limitVisible = currentAxis !== 'Fixed';
+  const limitVisible = currentJointType !== 'Fixed';
 
   return `
 <div class="editor-header">
@@ -184,7 +201,11 @@ function renderJointEditor(joint, joints) {
   </div>
   <div class="accordion-body" id="kinematics_section">
     <div class="form-group">
-      <label>Axis / Type</label>
+      <label>Joint Type</label>
+      <div class="radio-group">${jointTypeRadios}</div>
+    </div>
+    <div class="form-group" id="ed_axis_row" style="${axisVisible ? '' : 'display:none'}">
+      <label>Axis</label>
       <div class="radio-group">${axisRadios}</div>
     </div>
     <div class="form-row" id="ed_offset_row">
@@ -198,8 +219,8 @@ function renderJointEditor(joint, joints) {
       <div class="form-group"><label>Rot Y (deg)</label><input type="number" id="ed_yaw" step="any" value="${joint.yaw || 0}"></div>
     </div>
     <div class="form-row" id="ed_limit_row" style="${limitVisible ? '' : 'display:none'}">
-      <div class="form-group"><label>Min (deg)</label><input type="number" id="ed_low" step="any" value="${joint.low !== undefined ? joint.low : -180}"></div>
-      <div class="form-group"><label>Max (deg)</label><input type="number" id="ed_up" step="any" value="${joint.up !== undefined ? joint.up : 180}"></div>
+      <div class="form-group"><label id="ed_low_label">Min (${limitLabel})</label><input type="number" id="ed_low" step="any" value="${joint.low !== undefined ? joint.low : -180}"></div>
+      <div class="form-group"><label id="ed_up_label">Max (${limitLabel})</label><input type="number" id="ed_up" step="any" value="${joint.up !== undefined ? joint.up : 180}"></div>
     </div>
   </div>
 </div>
@@ -474,7 +495,8 @@ function getJointFromForm() {
     name: getVal('ed_name'),
     parent: getVal('ed_parent'),
     child: getVal('ed_child'),
-    axis: getRadio('ed_axis'),
+    axis: (() => { const t = getRadio('ed_joint_type'); return t === 'Fixed' ? 'Fixed' : (getRadio('ed_axis') || 'Roll'); })(),
+    type: (() => { const t = getRadio('ed_joint_type'); return t === 'Fixed' ? 'fixed' : (t === 'Prismatic' ? 'prismatic' : 'revolute'); })(),
     x: getNum('ed_x'), y: getNum('ed_y'), z: getNum('ed_z'),
     r: getNum('ed_r'), p: getNum('ed_p'), yaw: getNum('ed_yaw'),
     low: getNum('ed_low'), up: getNum('ed_up'),
@@ -538,12 +560,20 @@ function toggleAccordion(id) {
 
 // --- Attach live event listeners to editor ---
 function attachJointEditorListeners() {
-  // Axis radio change -> show/hide limits
-  document.querySelectorAll('input[name="ed_axis"]').forEach(el => {
+  // Joint type radio change -> show/hide axis row and limits, update limit labels
+  document.querySelectorAll('input[name="ed_joint_type"]').forEach(el => {
     el.addEventListener('change', () => {
       const val = el.value;
+      const isFixed = val === 'Fixed';
+      const isPrismatic = val === 'Prismatic';
       const limitRow = document.getElementById('ed_limit_row');
-      if (limitRow) limitRow.style.display = (val === 'Fixed') ? 'none' : '';
+      const axisRow = document.getElementById('ed_axis_row');
+      if (limitRow) limitRow.style.display = isFixed ? 'none' : '';
+      if (axisRow) axisRow.style.display = isFixed ? 'none' : '';
+      const minLabel = document.getElementById('ed_low_label');
+      const maxLabel = document.getElementById('ed_up_label');
+      if (minLabel) minLabel.textContent = `Min (${isPrismatic ? 'mm' : 'deg'})`;
+      if (maxLabel) maxLabel.textContent = `Max (${isPrismatic ? 'mm' : 'deg'})`;
     });
   });
 
