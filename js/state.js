@@ -112,7 +112,7 @@ const AppState = {
     }
 
     const keys = [
-      'name', 'parent', 'child', 'axis',
+      'name', 'parent', 'child', 'type', 'axis',
       'x', 'y', 'z', 'r', 'p', 'yaw', 'low', 'up',
       'vis_type', 'vis_mesh', 'vis_dim1', 'vis_dim2', 'vis_dim3',
       'vis_x', 'vis_y', 'vis_z', 'vis_roll', 'vis_pitch', 'vis_yaw',
@@ -120,18 +120,12 @@ const AppState = {
       'col_x', 'col_y', 'col_z', 'col_roll', 'col_pitch', 'col_yaw'
     ];
 
-    const strKeys = new Set(['name', 'parent', 'child', 'axis', 'vis_type', 'vis_mesh', 'col_type', 'col_enabled']);
+    const strKeys = new Set(['name', 'parent', 'child', 'type', 'axis', 'vis_type', 'vis_mesh', 'col_type', 'col_enabled']);
     const angleKeys = new Set(['r', 'p', 'yaw', 'low', 'up', 'col_roll', 'col_pitch', 'col_yaw', 'vis_roll', 'vis_pitch', 'vis_yaw']);
 
     for (const key of keys) {
       if (!(key in newValues)) continue;
       let val = newValues[key];
-
-      if (key === 'axis' && val === 'Fixed') {
-        j.type = 'fixed';
-      } else if (key === 'axis' && ['Roll', 'Pitch', 'Yaw'].includes(val)) {
-        j.type = 'revolute';
-      }
 
       if (!strKeys.has(key)) {
         const n = parseFloat(val);
